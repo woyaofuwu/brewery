@@ -1,4 +1,8 @@
 <settings>
+  <pluginGroups>   
+	  <pluginGroup>io.fabric8</pluginGroup>
+    <pluginGroup>org.springframework.boot</pluginGroup>
+  </pluginGroups>
   <servers>
      <server>
         <id>nexus</id>
