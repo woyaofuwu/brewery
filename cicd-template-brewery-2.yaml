@@ -146,7 +146,7 @@ objects:
     labels:
       app: cicd-pipeline
       role: jenkins-slave
-    name: jenkins-slaves2
+    name: jenkins-slaves22
   data:
     maven-template: |-
       <org.csanchez.jenkins.plugins.kubernetes.PodTemplate>
