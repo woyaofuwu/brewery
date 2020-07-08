@@ -1,5 +1,6 @@
 def mvnCmd = "mvn -s cicd-settings-nexus3.xml"
-
+def mvnCmd_sub = "mvn -s ../../cicd-settings-nexus3.xml"
+def mvnCmd_sub2 = "mvn -s ../cicd-settings-nexus3.xml"
 pipeline {
   agent {
     label 'maven'
@@ -10,7 +11,7 @@ pipeline {
         git branch: 'iteration-1', url: 'http://gogs:3000/gogs/brewery-3.git'
         //sh "./gradlew -DWHAT_TO_TEST='SLEUTH_STREAM' clean build"
         sh "${mvnCmd} -N install -DskipTests=true"
-        //sh "${mvnCmd} install -DskipTests=true"
+        //sh "${mvnCmd_sub} install -DskipTests=true"
       }
     }
    
@@ -25,7 +26,7 @@ pipeline {
     stage('Build rabbitmq Image') {
       steps {
         sh "dir "
-        sh" cd extras/rabbitmq && ${mvnCmd} -Dfabric8.mode=kubernetes clean fabric8:deploy"
+        sh" cd extras/rabbitmq && ${mvnCmd_sub} -Dfabric8.mode=kubernetes clean fabric8:deploy"
         script {
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
@@ -38,7 +39,8 @@ pipeline {
     stage('Build config-server Image') {
       steps {
         sh "dir "
-        sh"cd config-server && ${mvnCmd}  clean fabric8:deploy"
+        sh"cd config-server && ${mvnCmd_sub2} -Dfabric8.mode=kubernetes  clean fabric8:deploy"
+		//-Dfabric8.namespace=env.DEV_PROJECT
         script {
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
@@ -51,7 +53,7 @@ pipeline {
     stage('Build eureka Image') {
       steps {
         sh "dir "
-        sh"cd eureka && ${mvnCmd}  clean fabric8:deploy"
+        sh"cd eureka && ${mvnCmd_sub2}  clean fabric8:deploy"
         script {
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
@@ -64,7 +66,7 @@ pipeline {
     stage('Build zipkin-server Image') {
       steps {
         sh "dir "
-        sh"cd zipkin-server && ${mvnCmd} clean fabric8:deploy"
+        sh"cd zipkin-server && ${mvnCmd_sub2} clean fabric8:deploy"
         script {
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
@@ -78,7 +80,7 @@ pipeline {
       steps {
         sh "dir "
         sh ""
-        sh" cd zuul && ${mvnCmd}  clean fabric8:deploy"
+        sh" cd zuul && ${mvnCmd_sub2}  clean fabric8:deploy"
         script {
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
@@ -92,7 +94,7 @@ pipeline {
       steps {
         sh "dir "
         sh ""
-        sh"cd ingredients && ${mvnCmd} clean fabric8:deploy"
+        sh"cd ingredients && ${mvnCmd_sub2} clean fabric8:deploy"
         script {
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
@@ -105,7 +107,7 @@ pipeline {
     stage('Build reporting Image') {
       steps {
         sh "dir "
-        sh" cd reporting && ${mvnCmd}  clean fabric8:deploy"
+        sh" cd reporting && ${mvnCmd_sub2}  clean fabric8:deploy"
         script {
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
@@ -118,7 +120,7 @@ pipeline {
     stage('Build brewing Image') {
       steps {
         sh "dir "
-        sh" cd brewing && ${mvnCmd}  clean fabric8:deploy"
+        sh" cd brewing && ${mvnCmd_sub2}  clean fabric8:deploy"
         script {
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
@@ -131,7 +133,7 @@ pipeline {
       stage('Build presenting Image') {
       steps {
         sh "dir "
-        sh" cd presenting && ${mvnCmd}  clean fabric8:deploy"
+        sh" cd presenting && ${mvnCmd_sub2}  clean fabric8:deploy"
         script {
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
