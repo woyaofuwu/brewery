@@ -1,0 +1,57 @@
+def mvnCmd = "mvn -s cicd-settings-nexus3.xml"
+def mvnCmd_sub = "mvn -s ../../cicd-settings-nexus3.xml"
+def mvnCmd_sub2 = "mvn -s ../cicd-settings-nexus3.xml"
+pipeline {
+  agent {
+    label 'maven'
+  }
+  stages {
+    stage('Build App') {
+      steps {
+        git branch: 'iteration-1', url: 'http://gogs:3000/gogs/brewery-3.git'
+        //sh "./gradlew -DWHAT_TO_TEST='SLEUTH_STREAM' clean build"
+        sh "${mvnCmd} -N install -DskipTests=true"
+        sh "pwd"
+      }
+    }
+   
+   /** stage('Code Analysis') {
+      steps {
+        script {
+          sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube:9000 -DskipTests=true"
+        }
+      }
+    }**/
+    
+    stage('Build Image') {
+      steps {
+        sh "pwd  "
+        sh "dir "
+		sh "pwd  "
+        //sh" cd extras/rabbitmq && ${mvnCmd_sub} -Dfabric8.mode=kubernetes clean fabric8:deploy"
+         sh"cd ingredients && ${mvnCmd_sub2} -Dfabric8.namespace=${env.DEV_PROJECT}  clean package fabric8:deploy"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+             // openshift.selector("bc", "tasks").startBuild("--from-file=target/ROOT.war", "--wait=true")
+            }
+          }
+        }
+      }
+    }
+    /**
+    stage('Deploy DEV') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+             openshift.selector("dc", "tasks").rollout().latest();
+            }
+          }
+        }
+      }
+    }**/
+  
+   
+  }
+}
