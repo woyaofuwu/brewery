@@ -31,8 +31,10 @@
     <groovy-all.version>2.4.5</groovy-all.version>
     <!-- This should be enabled once we have SB-128 implemented-->
     <skipTests>true</skipTests>
-    <!-- Setting the image explicity to use redhat-openjdk-->
+    <!-- Setting the image explicity to use redhat-openjdk
     <fabric8.generator.from>redhat-openjdk-18/openjdk18-openshift</fabric8.generator.from>
+    -->
+    <fabric8.generator.from>docker-registry.default.svc:5000/openshift/redhat-openjdk18-openshift</fabric8.generator.from>
   </properties>
 
   <dependencyManagement>
