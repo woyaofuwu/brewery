@@ -27,7 +27,6 @@ buildscript {
     //classpath 'org.codehaus.groovy:groovy-all:2.4.5'
   }
 }
-
 def commonProject = project(':common')
 def commonZipkinProject = project(':common-zipkin')
 def commonZipkinProjectOld = project(':common-zipkin-old')
