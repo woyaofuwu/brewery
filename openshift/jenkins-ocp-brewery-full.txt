@@ -1,0 +1,159 @@
+def mvnCmd = "mvn -s cicd-settings-nexus3.xml"
+
+pipeline {
+  agent {
+    label 'maven'
+  }
+  stages {
+    stage('Build App') {
+      steps {
+        git branch: 'iteration-1', url: 'http://gogs:3000/gogs/brewery-3.git'
+        //sh "./gradlew -DWHAT_TO_TEST='SLEUTH_STREAM' clean build"
+        sh "${mvnCmd} -N install -DskipTests=true"
+        //sh "${mvnCmd} install -DskipTests=true"
+      }
+    }
+   
+   /** stage('Code Analysis') {
+      steps {
+        script {
+          sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube:9000 -DskipTests=true"
+        }
+      }
+    }**/
+    
+    stage('Build rabbitmq Image') {
+      steps {
+        sh "dir "
+        sh" cd extras/rabbitmq && ${mvnCmd} -Dfabric8.mode=kubernetes clean fabric8:deploy"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+             // openshift.selector("bc", "tasks").startBuild("--from-file=target/ROOT.war", "--wait=true")
+            }
+          }
+        }
+      }
+    }
+    stage('Build config-server Image') {
+      steps {
+        sh "dir "
+        sh"cd config-server && ${mvnCmd}  clean fabric8:deploy"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+             // openshift.selector("bc", "tasks").startBuild("--from-file=target/ROOT.war", "--wait=true")
+            }
+          }
+        }
+      }
+    }
+    stage('Build eureka Image') {
+      steps {
+        sh "dir "
+        sh"cd eureka && ${mvnCmd}  clean fabric8:deploy"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+             // openshift.selector("bc", "tasks").startBuild("--from-file=target/ROOT.war", "--wait=true")
+            }
+          }
+        }
+      }
+    }
+    stage('Build zipkin-server Image') {
+      steps {
+        sh "dir "
+        sh"cd zipkin-server && ${mvnCmd} clean fabric8:deploy"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+             // openshift.selector("bc", "tasks").startBuild("--from-file=target/ROOT.war", "--wait=true")
+            }
+          }
+        }
+      }
+    }
+    stage('Build zuul Image') {
+      steps {
+        sh "dir "
+        sh ""
+        sh" cd zuul && ${mvnCmd}  clean fabric8:deploy"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+             // openshift.selector("bc", "tasks").startBuild("--from-file=target/ROOT.war", "--wait=true")
+            }
+          }
+        }
+      }
+    }
+    stage('Build ingredients Image') {
+      steps {
+        sh "dir "
+        sh ""
+        sh"cd ingredients && ${mvnCmd} clean fabric8:deploy"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+             // openshift.selector("bc", "tasks").startBuild("--from-file=target/ROOT.war", "--wait=true")
+            }
+          }
+        }
+      }
+    }
+    stage('Build reporting Image') {
+      steps {
+        sh "dir "
+        sh" cd reporting && ${mvnCmd}  clean fabric8:deploy"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+             // openshift.selector("bc", "tasks").startBuild("--from-file=target/ROOT.war", "--wait=true")
+            }
+          }
+        }
+      }
+    }
+    stage('Build brewing Image') {
+      steps {
+        sh "dir "
+        sh" cd brewing && ${mvnCmd}  clean fabric8:deploy"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+             // openshift.selector("bc", "tasks").startBuild("--from-file=target/ROOT.war", "--wait=true")
+            }
+          }
+        }
+      }
+    }
+      stage('Build presenting Image') {
+      steps {
+        sh "dir "
+        sh" cd presenting && ${mvnCmd}  clean fabric8:deploy"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+             // openshift.selector("bc", "tasks").startBuild("--from-file=target/ROOT.war", "--wait=true")
+            }
+          }
+        }
+      }
+    }
+    /**
+    stage('Deploy DEV') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+             openshift.selector("dc", "tasks").rollout().latest();
+            }
+          }
+        }
+      }
+    }**/
+  
+   
+  }
+}
