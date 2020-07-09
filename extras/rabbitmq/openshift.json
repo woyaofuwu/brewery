@@ -1,0 +1,231 @@
+{
+  "apiVersion" : "v1",
+  "kind" : "List",
+  "items" : [ {
+    "apiVersion" : "v1",
+    "kind" : "ServiceAccount",
+    "metadata" : {
+      "labels" : {
+        "app" : "rabbitmq",
+        "provider" : "fabric8",
+        "version" : "1.0-SNAPSHOT",
+        "group" : "io.spring.cloud.samples.brewery"
+      },
+      "name" : "brewery"
+    }
+  }, {
+    "apiVersion" : "v1",
+    "kind" : "Service",
+    "metadata" : {
+      "annotations" : {
+        "fabric8.io/git-commit" : "64b1d84e10a4e5a03c83b9e02b0bfafa02598b9e",
+        "fabric8.io/git-branch" : "iteration-2"
+      },
+      "labels" : {
+        "expose" : "true",
+        "app" : "rabbitmq",
+        "provider" : "fabric8",
+        "version" : "1.0-SNAPSHOT",
+        "group" : "io.spring.cloud.samples.brewery"
+      },
+      "name" : "rabbitmq-client"
+    },
+    "spec" : {
+      "ports" : [ {
+        "name" : "client-amqp",
+        "port" : 5672,
+        "protocol" : "TCP",
+        "targetPort" : 5672
+      } ],
+      "selector" : {
+        "app" : "rabbitmq",
+        "provider" : "fabric8",
+        "group" : "io.spring.cloud.samples.brewery"
+      }
+    }
+  }, {
+    "apiVersion" : "v1",
+    "kind" : "Service",
+    "metadata" : {
+      "annotations" : {
+        "fabric8.io/git-commit" : "64b1d84e10a4e5a03c83b9e02b0bfafa02598b9e",
+        "fabric8.io/git-branch" : "iteration-2"
+      },
+      "labels" : {
+        "expose" : "true",
+        "app" : "rabbitmq",
+        "provider" : "fabric8",
+        "version" : "1.0-SNAPSHOT",
+        "group" : "io.spring.cloud.samples.brewery"
+      },
+      "name" : "rabbitmq-management"
+    },
+    "spec" : {
+      "ports" : [ {
+        "name" : "management",
+        "port" : 15672,
+        "protocol" : "TCP",
+        "targetPort" : 15672
+      } ],
+      "selector" : {
+        "app" : "rabbitmq",
+        "provider" : "fabric8",
+        "group" : "io.spring.cloud.samples.brewery"
+      }
+    }
+  }, {
+    "apiVersion" : "v1",
+    "kind" : "RoleBinding",
+    "metadata" : {
+      "labels" : {
+        "app" : "rabbitmq",
+        "provider" : "fabric8",
+        "version" : "1.0-SNAPSHOT",
+        "group" : "io.spring.cloud.samples.brewery"
+      },
+      "name" : "rabbitmq"
+    },
+    "roleRef" : {
+      "name" : "view"
+    },
+    "subjects" : [ {
+      "kind" : "ServiceAccount",
+      "name" : "default"
+    }, {
+      "kind" : "ServiceAccount",
+      "name" : "brewery"
+    } ]
+  }, {
+    "apiVersion" : "apps.openshift.io/v1",
+    "kind" : "DeploymentConfig",
+    "metadata" : {
+      "annotations" : {
+        "fabric8.io/git-commit" : "64b1d84e10a4e5a03c83b9e02b0bfafa02598b9e",
+        "fabric8.io/git-branch" : "iteration-2",
+        "fabric8.io/metrics-path" : "dashboard/file/kubernetes-pods.json/?var-project=rabbitmq&var-version=1.0-SNAPSHOT"
+      },
+      "labels" : {
+        "app" : "rabbitmq",
+        "provider" : "fabric8",
+        "version" : "1.0-SNAPSHOT",
+        "group" : "io.spring.cloud.samples.brewery"
+      },
+      "name" : "rabbitmq"
+    },
+    "spec" : {
+      "replicas" : 1,
+      "revisionHistoryLimit" : 2,
+      "selector" : {
+        "app" : "rabbitmq",
+        "provider" : "fabric8",
+        "group" : "io.spring.cloud.samples.brewery"
+      },
+      "strategy" : {
+        "rollingParams" : {
+          "timeoutSeconds" : 3600
+        },
+        "type" : "Rolling"
+      },
+      "template" : {
+        "metadata" : {
+          "annotations" : {
+            "fabric8.io/git-commit" : "64b1d84e10a4e5a03c83b9e02b0bfafa02598b9e",
+            "fabric8.io/git-branch" : "iteration-2",
+            "fabric8.io/metrics-path" : "dashboard/file/kubernetes-pods.json/?var-project=rabbitmq&var-version=1.0-SNAPSHOT"
+          },
+          "labels" : {
+            "app" : "rabbitmq",
+            "provider" : "fabric8",
+            "version" : "1.0-SNAPSHOT",
+            "group" : "io.spring.cloud.samples.brewery"
+          }
+        },
+        "spec" : {
+          "containers" : [ {
+            "image" : "rabbitmq:management",
+            "imagePullPolicy" : "IfNotPresent",
+            "livenessProbe" : {
+              "initialDelaySeconds" : 30,
+              "tcpSocket" : {
+                "port" : 15672
+              }
+            },
+            "name" : "rabbitmq",
+            "ports" : [ {
+              "containerPort" : 15672,
+              "name" : "management"
+            }, {
+              "containerPort" : 5672,
+              "name" : "amqp"
+            } ],
+            "readinessProbe" : {
+              "httpGet" : {
+                "path" : "/",
+                "port" : 15672
+              },
+              "initialDelaySeconds" : 5
+            }
+          } ],
+          "serviceAccountName" : "brewery"
+        }
+      },
+      "triggers" : [ {
+        "type" : "ConfigChange"
+      }, {
+        "imageChangeParams" : {
+          "automatic" : true,
+          "containerNames" : [ "rabbitmq" ],
+          "from" : {
+            "kind" : "ImageStreamTag",
+            "name" : "rabbitmq:management"
+          }
+        },
+        "type" : "ImageChange"
+      } ]
+    }
+  }, {
+    "apiVersion" : "route.openshift.io/v1",
+    "kind" : "Route",
+    "metadata" : {
+      "labels" : {
+        "expose" : "true",
+        "app" : "rabbitmq",
+        "provider" : "fabric8",
+        "version" : "1.0-SNAPSHOT",
+        "group" : "io.spring.cloud.samples.brewery"
+      },
+      "name" : "rabbitmq-client"
+    },
+    "spec" : {
+      "port" : {
+        "targetPort" : 5672
+      },
+      "to" : {
+        "kind" : "Service",
+        "name" : "rabbitmq-client"
+      }
+    }
+  }, {
+    "apiVersion" : "route.openshift.io/v1",
+    "kind" : "Route",
+    "metadata" : {
+      "labels" : {
+        "expose" : "true",
+        "app" : "rabbitmq",
+        "provider" : "fabric8",
+        "version" : "1.0-SNAPSHOT",
+        "group" : "io.spring.cloud.samples.brewery"
+      },
+      "name" : "rabbitmq-management"
+    },
+    "spec" : {
+      "port" : {
+        "targetPort" : 15672
+      },
+      "to" : {
+        "kind" : "Service",
+        "name" : "rabbitmq-management"
+      }
+    }
+  } ]
+}

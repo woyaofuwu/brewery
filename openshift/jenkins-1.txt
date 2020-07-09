@@ -1,0 +1,50 @@
+def mvnCmd = "mvn -s cicd-settings-nexus3.xml"
+
+pipeline {
+  agent {
+    label 'maven'
+  }
+  stages {
+    stage('Build App') {
+      steps {
+        git branch: 'iteration-2', url: 'http://gogs:3000/gogs/brewery-2.git'
+        sh "${mvnCmd} -N install -DskipTests=true"
+        sh "${mvnCmd} install -DskipTests=true"
+      }
+    }
+    stage('Test') {
+      steps {
+        sh "${mvnCmd} test"
+        step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
+      }
+    }
+    stage('Code Analysis') {
+      steps {
+        script {
+          sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube:9000 -DskipTests=true"
+        }
+      }
+    }
+   /** stage('Archive App') {
+      steps {
+        sh "${mvnCmd} deploy -DskipTests=true -P nexus3"
+      }
+    }**/
+     stage('Build rabbitmq Image') {
+      steps {
+        sh "dir "
+        sh" cd extras/rabbitmq && ${mvnCmd_sub} -Dfabric8.mode=kubernetes clean fabric8:deploy"
+        script {
+          openshift.withCluster() {
+            openshift.withProject(env.DEV_PROJECT) {
+             // openshift.selector("bc", "tasks").startBuild("--from-file=target/ROOT.war", "--wait=true")
+            }
+          }
+        }
+      }
+    }
+   
+  
+   
+  }
+}
