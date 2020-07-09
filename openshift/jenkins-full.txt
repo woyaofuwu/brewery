@@ -1,5 +1,6 @@
 def mvnCmd = "mvn -s cicd-settings-nexus3.xml"
-
+def mvnCmd1 = "mvn -s ../..cicd-settings-nexus3.xml"
+def mvnCmd2 = "mvn -s ..cicd-settings-nexus3.xml"
 pipeline {
   agent {
     label 'maven'
@@ -32,7 +33,13 @@ pipeline {
     }**/
     stage('Build Image') {
       steps {
-        sh "cd /extras/apache-artemis && ${mvnCmd} -Dfabric8.mode=kubernetes clean fabric8:deploy"
+        sh "cd extras/apache-artemis && ${mvnCmd1} -Dfabric8.mode=kubernetes -Dfabric8.namespace=dev-brewery3 clean fabric8:deploy"
+        sh "cd extras/jaeger && oc process -f jaeger-all-in-one-template.yml -m dev-brewery3 | oc create -f -"
+        sh "cd zuul && ${mvnCmd2} -Dfabric8.namespace=dev-brewery3 clean fabric8:deploy"
+        sh "cd ingredients && ${mvnCmd2} -Dfabric8.namespace=dev-brewery3 clean fabric8:deploy"
+        sh "cd reporting && ${mvnCmd2} -Dfabric8.namespace=dev-brewery3 clean fabric8:deploy"
+        sh "cd brewing && ${mvnCmd2} -Dfabric8.namespace=dev-brewery3 clean fabric8:deploy"
+        sh "cd presenting && ${mvnCmd2} -Dfabric8.namespace=dev-brewery3 clean fabric8:deploy"
         script {
           openshift.withCluster() {
             openshift.withProject(env.DEV_PROJECT) {
