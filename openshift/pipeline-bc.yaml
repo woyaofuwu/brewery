@@ -59,13 +59,13 @@ spec:
                 stage('Build eureka-server Image') {
                   steps {
                    sh " cd extras/rabbitmq && ${mvnCmd2} -Dfabric8.mode=kubernetes clean fabric8:deploy -Dfabric8.namespace=brewery"                  
-                   sh " cd config-server && ${mvnCmd2} fabric8:deploy -Dfabric8.namespace=brewery "
-                   sh " cd eureka && ${mvnCmd2} clean fabric8:deploy -Dfabric8.namespace=brewery"
-                   sh " cd zipkin-server && ${mvnCmd2} fabric8:deploy -Dfabric8.namespace=brewery  "
-                   sh "cd zuul && ${mvnCmd2} fabric8:deploy -Dfabric8.namespace=brewery  "
-                   sh "cd ingredients && ${mvnCmd2} fabric8:deploy -Dfabric8.namespace=brewery  "
-                   sh "cd reporting && ${mvnCmd2} fabric8:deploy -Dfabric8.namespace=brewery  "
-                   sh "cd presenting && ${mvnCmd2} fabric8:deploy -Dfabric8.namespace=brewery  "
+                   sh " cd config-server && ${mvnCmd1} fabric8:deploy -Dfabric8.namespace=brewery "
+                   sh " cd eureka && ${mvnCmd1} clean fabric8:deploy -Dfabric8.namespace=brewery"
+                   sh " cd zipkin-server && ${mvnCmd1} fabric8:deploy -Dfabric8.namespace=brewery  "
+                   sh "cd zuul && ${mvnCmd1} fabric8:deploy -Dfabric8.namespace=brewery  "
+                   sh "cd ingredients && ${mvnCmd1} fabric8:deploy -Dfabric8.namespace=brewery  "
+                   sh "cd reporting && ${mvnCmd1} fabric8:deploy -Dfabric8.namespace=brewery  "
+                   sh "cd presenting && ${mvnCmd1} fabric8:deploy -Dfabric8.namespace=brewery  "
                    
                     script {
                       openshift.withCluster() {
