@@ -1,0 +1,89 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    pipeline.alpha.openshift.io/uses: '[{"name": "jenkins", "namespace": "", "kind": "DeploymentConfig"}]'
+  labels:
+    app: brewery-pipeline
+    group: cicd
+    name: brewery-pipeline
+    template: cicd
+  name: brewery-pipeline
+  namespace: cicd-andrew
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: {}
+  output: {}
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    type: None
+  strategy:
+    jenkinsPipelineStrategy:
+      env:
+        - name: DEV_PROJECT
+          value: dev-andrew
+        - name: STAGE_PROJECT
+          value: stage-andrew
+        - name: ENABLE_QUAY
+          value: 'false'
+      jenkinsfile: |-
+        def mvnCmd = "mvn -s cicd-settings-nexus3.xml"                  
+            def mvnCmd1 = "mvn -s ../cicd-settings-nexus3.xml"
+            def mvnCmd2 = "mvn -s ../../cicd-settings-nexus3.xml"
+            pipeline {
+              agent {
+                label 'maven'
+              }
+              stages {
+                stage('Build App') {
+                  steps {
+                    git branch: 'iteration-1', url: 'https://github.com/woyaofuwu/brewery'                
+                    sh "${mvnCmd} clean install package -DskipTests"
+                  }
+                }
+                
+                stage('Code Analysis') {
+                  steps {
+                    script {
+                      sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube:9000 -DskipTests=true"
+                    }
+                  }
+                }
+                /**stage('Archive App') {
+                  steps {
+                    sh "${mvnCmd} deploy -DskipTests=true "//-P nexus3 20200716 pom.xml settings.xml 配置调整后可以deploy
+                  }
+                }**/
+                stage('Build eureka-server Image') {
+                  steps {
+                   sh " cd extras/rabbitmq && ${mvnCmd2} -Dfabric8.mode=kubernetes clean fabric8:deploy -Dfabric8.namespace=brewery"                  
+                   sh " cd config-server && ${mvnCmd2} fabric8:deploy -Dfabric8.namespace=brewery "
+                   sh " cd eureka && ${mvnCmd2} clean fabric8:deploy -Dfabric8.namespace=brewery"
+                   sh " cd zipkin-server && ${mvnCmd2} fabric8:deploy -Dfabric8.namespace=brewery  "
+                   sh "cd zuul && ${mvnCmd2} fabric8:deploy -Dfabric8.namespace=brewery  "
+                   sh "cd ingredients && ${mvnCmd2} fabric8:deploy -Dfabric8.namespace=brewery  "
+                   sh "cd reporting && ${mvnCmd2} fabric8:deploy -Dfabric8.namespace=brewery  "
+                   sh "cd presenting && ${mvnCmd2} fabric8:deploy -Dfabric8.namespace=brewery  "
+                   
+                    script {
+                      openshift.withCluster() {
+                        openshift.withProject(env.DEV_PROJECT) {
+                          //openshift.selector("bc", "eureka-server").startBuild("--from-file=register-center/eureka-server/target/eureka-server.jar", "--wait=true")
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+    type: JenkinsPipeline
+  successfulBuildsHistoryLimit: 5
+  triggers:
+    - github:
+        secret: vRDKH6aK
+      type: GitHub
+    - generic:
+        secret: vRDKH6aK
+      type: Generic

@@ -1,5 +1,13 @@
 = Overview
 
+ 使用jenkins 自动部署
+
+ oc new-project brewery
+ # 增加cicd-andrew 
+ oc policy add-role-to-user edit system:serviceaccount:cicd-andrew:default -n brewery
+ oc policy add-role-to-user edit system:serviceaccount:cicd-andrew:jenkins -n brewery
+
+
 **Green Cloud Demo** is your first step on how to migrate and optimize an existing Spring Boot application  to
 https://www.openshift.com[OpenShift].  The migration guides you with the process of how to migrate Spring Boot workload form other platform 
 to https://www.openshift.com[OpenShift], i.e. the build process, the ideal platform (https://www.openshift.com[OpenShift]), optimizing etc.,
